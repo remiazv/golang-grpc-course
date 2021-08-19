@@ -13,11 +13,11 @@ message SumResponse {
 }
 
 message DecompositionRequest {
-    int32 number = 1;
+    int64 number = 1;
 }
 
 message DecompositionResponse {
-    int32 result = 1;
+    int64 result = 1;
 }
 
 service CalculatorService {

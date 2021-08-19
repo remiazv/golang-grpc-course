@@ -28,13 +28,10 @@ func (*server) Sum(ctx context.Context, request *calculatorpb.SumRequest) (*calc
 
 func (*server) Decomposition(request *calculatorpb.DecompositionRequest, stream calculatorpb.CalculatorService_DecompositionServer) error {
 	n := request.GetNumber()
-	var k int32 = 2
+	var k int64 = 2
 
-	for {
-		if n <= 0 || n == 1 {
-			break
-		}
-		
+	for n > 1{
+
 		if (n % k) == 0 {
 			log.Println(k)
 			n = n / k
