@@ -21,12 +21,10 @@ func main() {
 	doUnary(c)
 }
 
-func doUnary(c calculatorpb.CalculatorServiceClient){
-	request := &calculatorpb.CalculatorRequest{
-		Calculating: &calculatorpb.Calculating{
-			FirstNumber: 10,
-			SecondNumber: 3,
-		},
+func doUnary(c calculatorpb.CalculatorServiceClient) {
+	request := &calculatorpb.SumRequest{
+		FirstNumber:  10,
+		SecondNumber: 3,
 	}
 
 	response, err := c.Sum(context.Background(), request)

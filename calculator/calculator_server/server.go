@@ -14,11 +14,11 @@ type server struct {
 	calculatorpb.UnimplementedCalculatorServiceServer
 }
 
-func (*server) Sum(ctx context.Context, request *calculatorpb.CalculatorRequest) (*calculatorpb.CalculatorResponse, error) {
-	firstNumber := request.GetCalculating().GetFirstNumber()
-	secondNumber := request.GetCalculating().GetSecondNumber()
+func (*server) Sum(ctx context.Context, request *calculatorpb.SumRequest) (*calculatorpb.SumResponse, error) {
+	firstNumber := request.GetFirstNumber()
+	secondNumber := request.GetSecondNumber()
 
-	response := &calculatorpb.CalculatorResponse{
+	response := &calculatorpb.SumResponse{
 		Result: firstNumber + secondNumber,
 	}
 
