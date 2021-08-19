@@ -4,8 +4,9 @@ import (
 	"context"
 	"log"
 	"net"
+	"time"
 
-	"grcp-udemy/calculator/calculatorpb"
+	"github.com/remiazv/golang-grpc-course/calculator/calculatorpb"
 
 	"google.golang.org/grpc"
 )
@@ -23,6 +24,32 @@ func (*server) Sum(ctx context.Context, request *calculatorpb.SumRequest) (*calc
 	}
 
 	return response, nil
+}
+
+func (*server) Decomposition(request *calculatorpb.DecompositionRequest, stream calculatorpb.CalculatorService_DecompositionServer) error {
+	n := request.GetNumber()
+	var k int32 = 2
+
+	for {
+		if n <= 0 || n == 1 {
+			break
+		}
+		
+		if (n % k) == 0 {
+			log.Println(k)
+			n = n / k
+
+			response := &calculatorpb.DecompositionResponse{
+				Result: k,
+			}
+			stream.Send(response)
+			time.Sleep(1000 * time.Millisecond)
+		} else {
+			k = k + 1
+		}
+	}
+
+	return nil
 }
 
 func main() {

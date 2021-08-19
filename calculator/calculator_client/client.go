@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
-	"grcp-udemy/calculator/calculatorpb"
+	"io"
 	"log"
+
+	"github.com/remiazv/golang-grpc-course/calculator/calculatorpb"
 
 	"google.golang.org/grpc"
 )
@@ -18,7 +20,32 @@ func main() {
 
 	c := calculatorpb.NewCalculatorServiceClient(cc)
 
-	doUnary(c)
+	// doUnary(c)
+	doServerStreaming(c)
+}
+
+func doServerStreaming(c calculatorpb.CalculatorServiceClient){
+	request := &calculatorpb.DecompositionRequest{
+		Number: 120,
+	}
+
+	resStream, err := c.Decomposition(context.Background(), request)
+	if err != nil {
+		log.Fatalf("Error while calling Decomposition RPC: %v", err)
+	}
+
+	for {
+		msg, err := resStream.Recv()
+		if err == io.EOF {
+			// we've reached the end of the stream
+			break
+		}
+		if err != nil {
+			log.Fatalf("Error while reading stream: %v", err)
+		}
+
+		log.Printf("Response from Decomposition: %v", msg.GetResult())
+	}
 }
 
 func doUnary(c calculatorpb.CalculatorServiceClient) {

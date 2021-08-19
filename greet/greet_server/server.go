@@ -2,9 +2,12 @@ package main
 
 import (
 	"context"
-	"grcp-udemy/greet/greetpb"
 	"log"
 	"net"
+	"strconv"
+	"time"
+
+	"github.com/remiazv/golang-grpc-course/greet/greetpb"
 
 	"google.golang.org/grpc"
 )
@@ -23,6 +26,21 @@ func (*server) Greet(ctx context.Context, request *greetpb.GreetRequest) (*greet
 	return response, nil
 }
 
+func (*server) GreetManyTimes(request *greetpb.GreetManyTimesRequest, stream greetpb.GreetService_GreetManyTimesServer) error {
+	firstName := request.GetFirstName()
+	lastName := request.GetLastName()
+
+	for i := 0; i < 10; i++ {
+		res := &greetpb.GreetManyTimesResponse{
+			Result: "Hello " + firstName + " " + lastName + " number " + strconv.Itoa(i),
+		}
+
+		stream.Send(res)
+		time.Sleep(1000 * time.Millisecond)
+	}
+
+	return nil
+}
 func main() {
 	lis, err := net.Listen("tcp", "0.0.0.0:50051")
 	if err != nil {

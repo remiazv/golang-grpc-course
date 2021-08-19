@@ -3,8 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
-	"grcp-udemy/greet/greetpb"
+	"io"
 	"log"
+
+	"github.com/remiazv/golang-grpc-course/greet/greetpb"
 
 	"google.golang.org/grpc"
 )
@@ -20,9 +22,9 @@ func main() {
 	defer cc.Close()
 
 	c := greetpb.NewGreetServiceClient(cc)
-	log.Printf("Created client: %f", c)
 
 	doUnary(c)
+	doServerStreaming(c)
 }
 
 func doUnary(c greetpb.GreetServiceClient){
@@ -30,8 +32,8 @@ func doUnary(c greetpb.GreetServiceClient){
 
 	request := &greetpb.GreetRequest{
 		Greeting: &greetpb.Greeting{
-			FirstName: "Remi",
-			LastName: "Azevedo",
+			FirstName: "John",
+			LastName: "Doe",
 		},
 	}
 	response, err := c.Greet(context.Background(), request)
@@ -40,4 +42,33 @@ func doUnary(c greetpb.GreetServiceClient){
 	}
 	
 	log.Printf("Response: %v", response.Result)
+}
+
+func doServerStreaming(c greetpb.GreetServiceClient){
+	fmt.Println("Starting to do a Server Streaming RPC...")
+	
+	request := &greetpb.GreetManyTimesRequest{
+		FirstName: "John",
+		LastName: "Doe",
+	}
+
+	resStream, err := c.GreetManyTimes(context.Background(), request)
+	if err != nil {
+		log.Fatalf("Error while calling GreetManyTimes RPC: %v", err)
+	}
+
+	for {
+		msg, err := resStream.Recv()
+		if err == io.EOF {
+			// we've reached the end of the stream
+			break
+		}
+		if err != nil {
+			log.Fatalf("Error while reading stream: %v", err)
+		}
+
+		log.Printf("Response from GreetManyTimes: %v", msg.GetResult())
+	}
+	
+
 }

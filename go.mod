@@ -1,4 +1,4 @@
-module grcp-udemy
+module github.com/remiazv/golang-grpc-course
 
 go 1.17
 
