@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"log"
+	"time"
 
 	"github.com/remiazv/golang-grpc-course/calculator/calculatorpb"
 
@@ -21,7 +23,82 @@ func main() {
 	c := calculatorpb.NewCalculatorServiceClient(cc)
 
 	// doUnary(c)
-	doServerStreaming(c)
+	// doServerStreaming(c)
+	// doClientStreaming(c)
+	doBidirectionalStreaming(c)
+}
+
+func doBidirectionalStreaming(c calculatorpb.CalculatorServiceClient){
+	fmt.Println("Starting to do a FindMaximim BiDi Streaming RPC...")
+
+	stream, err := c.FindMaximum(context.Background())
+	if err != nil {
+		log.Fatalf("Error while opening stream and calling FindMaximum: %v", err)
+	}
+
+	waitc := make(chan struct{})
+
+	go func(){
+		numbers := []int32{4, 7, 2, 19, 4, 6, 32}
+		for _, number := range numbers {
+			stream.Send(&calculatorpb.FindMaximumRequest{
+				Number: number,
+			})
+			time.Sleep(1000 * time.Millisecond)
+		}
+		stream.CloseSend()
+	}()
+
+	go func(){
+		for {
+			response, err := stream.Recv()
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				log.Fatalf("Problem while reading server stream: %v", err)
+				break
+			}
+			maximum := response.GetMaximum()
+			fmt.Printf("Received a new maximum of ...: %v\n", maximum)
+		}
+		close(waitc)
+	}()
+	<-waitc
+}
+
+func doClientStreaming(c calculatorpb.CalculatorServiceClient){
+	requests := []*calculatorpb.ComputeAverageRequest{
+		{
+			Number: 1,
+		},
+		{
+			Number: 2,
+		},
+		{
+			Number: 3,
+		},
+		{
+			Number: 4,
+		},
+	}
+
+	stream, err := c.ComputeAverage(context.Background())
+	if err != nil {
+		log.Fatalf("Erro while calling ComputeAverage: %v", err)
+	}
+
+	for _, req := range requests {
+		fmt.Printf("Sending request: %v\n", req)
+		stream.Send(req)
+		time.Sleep(1000 * time.Millisecond)
+	}
+
+	res, err := stream.CloseAndRecv()
+	if err != nil {
+		log.Fatalf("Erro while receiving response from ComputeAverage: %v", err)
+	}
+	fmt.Printf("ComputeAverage Response: %v", res)
 }
 
 func doServerStreaming(c calculatorpb.CalculatorServiceClient){
